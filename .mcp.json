@@ -1,0 +1,54 @@
+{
+  "mcpServers": {
+    "atlassian-rovo": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp",
+      "headers": {
+        "Authorization": "Basic <your_base64_encoded_email_and_token>"
+      }
+    },
+    "aws": {
+      "type": "http",
+      "url": "https://aws-mcp.us-east-1.api.aws/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-aws-session-token>"
+      }
+    },
+    "azure-managed-grafana": {
+      "type": "http",
+      "url": "https://<grafana-endpoint>/api/azure-mcp",
+      "headers": {
+        "Authorization": "Bearer <your-grafana-service-account-token-or-entra-id-token>"
+      }
+    },
+    "datadog": {
+      "type": "http",
+      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp",
+      "headers": {
+        "DD_API_KEY": "<YOUR_API_KEY>",
+        "DD_APPLICATION_KEY": "<YOUR_APPLICATION_KEY>"
+      }
+    },
+    "dynatrace-mcp": {
+      "type": "http",
+      "url": "https://{TENANT_NAME}.apps.dynatrace.com/platform-reserved/mcp-gateway/v0.1/servers/dynatrace-mcp/mcp",
+      "headers": {
+        "Authorization": "Bearer {your-platform-token}"
+      }
+    },
+    "elasticsearch": {
+      "type": "http",
+      "url": "https://{KIBANA_URL}/api/agent_builder/mcp",
+      "headers": {
+        "Authorization": "ApiKey {your-api-key}"
+      }
+    },
+    "pager-duty": {
+      "type": "http",
+      "url": "https://mcp.pagerduty.com/mcp",
+      "headers": {
+        "Authorization": "Token <your_pagerduty_api_token>"
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "sre-agent-plugins",
+  "version": "1.0.1",
+  "description": "Bundle of all eight Azure SRE Agent plugins, including observability integrations and proactive Azure operations skills.",
+  "license": "MIT",
+  "skills": [
+    "plugins/atlassian-rovo/skills/",
+    "plugins/aws/skills/",
+    "plugins/azure-managed-grafana/skills/",
+    "plugins/azure-proactive-operations/skills/",
+    "plugins/datadog/skills/",
+    "plugins/dynatrace/skills/",
+    "plugins/elasticsearch/skills/",
+    "plugins/pager-duty/skills/"
+  ],
+  "mcpServers": ".mcp.json"
+}
