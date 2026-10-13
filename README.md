@@ -1,7 +1,10 @@
 # Azure SRE Agent Plugins
 
-Repackaged from [Azure/sre-agent-plugins](https://github.com/Azure/sre-agent-plugins), upstream commit `3783a11f2f6e3c9b47c6dd9f5b39720ef66b37a3`.
-All eight upstream plugins, their 15 skills, and the MIT license are preserved.
+Repackaged from [Azure/sre-agent-plugins](https://github.com/Azure/sre-agent-plugins), upstream commit `3783a11f2f6e3c9b47c6dd9f5b39720ef66b37a3`,
+and extended with the MIT-licensed Chaos Studio skills from
+[microsoft/chaos-studio](https://github.com/microsoft/chaos-studio), commit
+`35b54fb9101dd4d13cc9d5070913d1d8ed9d6b2d`.
+The catalog contains nine plugins and 26 skills.
 
 > **Note:** These plugins are designed for use with the [Azure SRE Agent](https://azure.microsoft.com/en-us/products/sre-agent) and may not work with other coding agents.
 
@@ -17,8 +20,8 @@ https://github.com/AmauryGarde/sre-agent-plugins
 ```
 
 1. In **Builder > Plugins**, choose **Add marketplace** and enter the base repository URL above (or `AmauryGarde/sre-agent-plugins`). Authenticate with a GitHub connection that can read the repository if it is private.
-2. Install only the plugins you need from the eight-plugin catalog. Start with `azure-proactive-operations` for Azure assessments without an external MCP server.
-3. Alternatively, choose **Install from URL** with the same base repository URL to import the root `sre-agent-plugins` bundle: all 15 skills and seven MCP server requirements.
+2. Install only the plugins you need from the nine-plugin catalog. Choose `chaos-studio` for the 11 Chaos Studio v2 workflows, or start with `azure-proactive-operations` for Azure assessments without an external MCP server.
+3. Alternatively, choose **Install from URL** with the same base repository URL to import the root `sre-agent-plugins` bundle: all 26 skills and seven MCP server requirements.
 4. Configure the required MCP connectors separately in SRE Agent. Installation records the requirements; it does not authenticate or provision the connectors.
 
 Do not install the bundle and its individual plugins together unless you intentionally want duplicate skills.
@@ -34,7 +37,7 @@ This copy supports both entry points:
 
 | File | Purpose |
 | --- | --- |
-| `marketplace.json` | Root catalog listing eight individually installable plugins |
+| `marketplace.json` | Root catalog listing nine individually installable plugins |
 | `.github/plugin/marketplace.json` | Matching catalog at the original upstream location |
 | `plugin.json` | Standalone root bundle referencing all existing skill directories |
 | `.mcp.json` | Seven MCP server definitions needed by the standalone bundle |
@@ -42,6 +45,20 @@ This copy supports both entry points:
 
 The root bundle references existing files rather than duplicating skill content.
 The marketplace is named `amaury-sre-agent-plugins` to distinguish it from the upstream catalog.
+
+## Chaos Studio plugin
+
+The `chaos-studio` plugin includes the 11 upstream skill definitions and their
+runtime PowerShell scripts, shared libraries, templates, schemas, KQL files, and
+references. Development tests are excluded. The plugin does not register the
+upstream local stdio `chaos-mcp` server because marketplace import cannot install
+its Python runtime portably. The interactive skills use their bundled PowerShell
+workflows; deploy and register `chaos-mcp` separately if you need its autonomous
+tool surface.
+
+Importing the plugin performs no Azure changes. Workspace creation, RBAC changes,
+scenario configuration, and fault execution remain behind the skills' explicit
+approval and validation gates.
 
 ## Connector setup
 
@@ -64,7 +81,8 @@ pwsh -NoProfile -File ./scripts/Test-PluginPackaging.ps1
 ```
 
 The check parses every JSON file, compares both marketplace catalogs, resolves every manifest path,
-checks all 15 skills are included exactly once, and compares the seven bundled MCP definitions
+checks all 26 skills are included exactly once, validates skill names and required
+Chaos Studio runtime assets, and compares the seven bundled MCP definitions
 against their individual plugin configurations.
 
 ## Adding plugins

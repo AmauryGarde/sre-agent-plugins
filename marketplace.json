@@ -4,8 +4,8 @@
     "name": "AmauryGarde"
   },
   "metadata": {
-    "description": "Azure SRE Agent plugins repackaged from Azure/sre-agent-plugins with a standalone root bundle.",
-    "version": "1.0.1"
+    "description": "Azure SRE Agent plugins with a standalone root bundle, including Azure Chaos Studio resilience workflows.",
+    "version": "1.1.0"
   },
   "plugins": [
     {
@@ -47,6 +47,11 @@
       "name": "azure-proactive-operations",
       "description": "Proactive operations skills for Azure SRE Agent. Instruction-based skills that run structured assessments across Well-Architected Framework, compliance, capacity planning, FinOps, incident postmortems, Defender Secure Score, startup governance, and AI workload posture using built-in Azure tools.",
       "source": "./plugins/azure-proactive-operations"
+    },
+    {
+      "name": "chaos-studio",
+      "description": "Azure Chaos Studio v2 skills for designing, scoping, configuring, running, and reviewing controlled resilience studies with explicit safety and approval gates.",
+      "source": "./plugins/chaos-studio"
     }
   ]
 }

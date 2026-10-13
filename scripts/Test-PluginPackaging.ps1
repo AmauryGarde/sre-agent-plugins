@@ -39,8 +39,8 @@ $githubCatalog = Read-JsonFile (Join-Path $repositoryRoot '.github/plugin/market
 if (($catalog | ConvertTo-Json -Depth 100 -Compress) -cne ($githubCatalog | ConvertTo-Json -Depth 100 -Compress)) {
     throw 'The root and .github marketplace catalogs differ.'
 }
-if ($catalog.plugins.Count -ne 8) {
-    throw 'Expected eight marketplace plugins.'
+if ($catalog.plugins.Count -ne 9) {
+    throw 'Expected nine marketplace plugins.'
 }
 if (@($catalog.plugins.name | Sort-Object -Unique).Count -ne $catalog.plugins.Count) {
     throw 'Duplicate marketplace plugin names.'
@@ -59,6 +59,17 @@ foreach ($entry in $catalog.plugins) {
         $skillFiles = @(Get-ChildItem -LiteralPath $skillsPath -Recurse -File -Filter 'SKILL.md')
         if ($skillFiles.Count -eq 0) {
             throw "No skills found for $($entry.name)."
+        }
+        foreach ($skillFile in $skillFiles) {
+            $frontmatter = Get-Content -LiteralPath $skillFile.FullName -TotalCount 8
+            $nameLine = $frontmatter | Where-Object { $_ -match '^name:\s*(.+?)\s*$' } | Select-Object -First 1
+            if (-not $nameLine) {
+                throw "Missing skill name frontmatter: $($skillFile.FullName)"
+            }
+            $skillName = ([regex]::Match($nameLine, '^name:\s*(.+?)\s*$')).Groups[1].Value.Trim("'`"")
+            if ($skillName -cne $skillFile.Directory.Name) {
+                throw "Skill name/folder mismatch: $skillName != $($skillFile.Directory.Name)"
+            }
         }
         $expectedSkillFiles += $skillFiles.FullName
     }
@@ -79,10 +90,69 @@ $actualSkillFiles = @(foreach ($skillsDirectory in $rootPlugin.skills) {
     $skillsPath = Resolve-PackagePath $repositoryRoot $skillsDirectory
     (Get-ChildItem -LiteralPath $skillsPath -Recurse -File -Filter 'SKILL.md').FullName
 })
-if ($actualSkillFiles.Count -ne 15 -or
+if ($actualSkillFiles.Count -ne 26 -or
     @($actualSkillFiles | Sort-Object -Unique).Count -ne $actualSkillFiles.Count -or
     (Compare-Object ($expectedSkillFiles | Sort-Object) ($actualSkillFiles | Sort-Object))) {
-    throw 'Root plugin must include each of the 15 upstream skills exactly once.'
+    throw 'Root plugin must include each of the 26 marketplace skills exactly once.'
+}
+
+$chaosPlugin = Resolve-PackagePath $repositoryRoot 'plugins/chaos-studio'
+$chaosSkillFiles = @(Get-ChildItem -LiteralPath (Join-Path $chaosPlugin 'skills') -Recurse -File -Filter 'SKILL.md')
+if ($chaosSkillFiles.Count -ne 11) {
+    throw 'Chaos Studio plugin must contain all 11 upstream skills.'
+}
+$requiredChaosAssets = @(
+    'LICENSE',
+    'README.md',
+    'scripts/State.ps1',
+    'scripts/Invoke-AzRest.ps1',
+    'scripts/Invoke-AzChaos.ps1',
+    'skills/chaos-study/references/study-method.md',
+    'skills/chaos-study/references/report-contract.md',
+    'skills/chaos-study/scripts/Invoke-ChaosStudy.ps1',
+    'skills/chaos-impact/schema/impact-report.schema.json',
+    'skills/chaos-impact/templates/report.md.tmpl',
+    'skills/chaos-study-report/templates/study-report.html.tmpl'
+)
+foreach ($asset in $requiredChaosAssets) {
+    $null = Resolve-PackagePath $chaosPlugin $asset
+}
+if (Get-ChildItem -LiteralPath $chaosPlugin -Recurse -Directory -Filter 'tests') {
+    throw 'Chaos Studio marketplace package must not contain development test directories.'
+}
+
+$chaosScripts = @(Get-ChildItem -LiteralPath $chaosPlugin -Recurse -File -Filter '*.ps1')
+if ($chaosScripts.Count -ne 54) {
+    throw "Chaos Studio plugin must contain 54 runtime PowerShell files; found $($chaosScripts.Count)."
+}
+foreach ($scriptFile in $chaosScripts) {
+    $tokens = $null
+    $parseErrors = $null
+    $null = [Management.Automation.Language.Parser]::ParseFile(
+        $scriptFile.FullName,
+        [ref]$tokens,
+        [ref]$parseErrors
+    )
+    if ($parseErrors.Count -gt 0) {
+        $messages = $parseErrors.Message -join '; '
+        throw "PowerShell syntax error in $($scriptFile.FullName): $messages"
+    }
+}
+
+$markdownFiles = @(Get-ChildItem -LiteralPath $chaosPlugin -Recurse -File -Filter '*.md')
+foreach ($markdownFile in $markdownFiles) {
+    $content = Get-Content -LiteralPath $markdownFile.FullName -Raw
+    foreach ($link in [regex]::Matches($content, '\]\(([^)]+)\)')) {
+        $target = $link.Groups[1].Value
+        if ($target -match '^(https?://|mailto:|#)' -or $target -match '[<>]') {
+            continue
+        }
+        $relativeTarget = ($target -split '#')[0]
+        $resolvedTarget = [IO.Path]::GetFullPath((Join-Path $markdownFile.DirectoryName $relativeTarget))
+        if (-not (Test-Path -LiteralPath $resolvedTarget)) {
+            throw "Broken relative Markdown link in $($markdownFile.FullName): $target"
+        }
+    }
 }
 
 $rootConfig = Read-JsonFile (Resolve-PackagePath $repositoryRoot $rootPlugin.mcpServers)
@@ -98,4 +168,4 @@ foreach ($serverName in $expectedServers.Keys) {
     }
 }
 
-Write-Output "PASS: $($jsonFiles.Count) JSON files; matching catalogs; 8 plugins; 15 skills; 7 matching MCP definitions."
+Write-Output "PASS: $($jsonFiles.Count) JSON files; matching catalogs; 9 plugins; 26 skills; Chaos runtime assets; 7 matching MCP definitions."

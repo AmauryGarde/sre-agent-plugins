@@ -1,0 +1,8 @@
+{
+  "name": "chaos-studio",
+  "description": "Azure Chaos Studio v2 skills for designing, scoping, configuring, running, and reviewing controlled resilience studies. Includes the upstream interactive PowerShell workflows and supporting runtime assets.",
+  "license": "MIT",
+  "skills": [
+    "skills/"
+  ]
+}
