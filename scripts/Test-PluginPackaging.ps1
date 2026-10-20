@@ -61,6 +61,12 @@ foreach ($entry in $catalog.plugins) {
             throw "No skills found for $($entry.name)."
         }
         foreach ($skillFile in $skillFiles) {
+            $content = Get-Content -LiteralPath $skillFile.FullName -Raw
+            $header = [regex]::Match($content, '\A---\r?\n(?<yaml>[\s\S]*?)\r?\n---(?:\r?\n|\z)')
+            if (-not $header.Success -or
+                $header.Groups['yaml'].Value -notmatch '(?m)^description:\s*\S') {
+                throw "Missing skill frontmatter or description: $($skillFile.FullName)"
+            }
             $frontmatter = Get-Content -LiteralPath $skillFile.FullName -TotalCount 8
             $nameLine = $frontmatter | Where-Object { $_ -match '^name:\s*(.+?)\s*$' } | Select-Object -First 1
             if (-not $nameLine) {
@@ -98,7 +104,21 @@ if ($actualSkillFiles.Count -ne 26 -or
 
 $chaosPlugin = Resolve-PackagePath $repositoryRoot 'plugins/chaos-studio'
 $chaosSkillFiles = @(Get-ChildItem -LiteralPath (Join-Path $chaosPlugin 'skills') -Recurse -File -Filter 'SKILL.md')
-if ($chaosSkillFiles.Count -ne 11) {
+$expectedChaosSkills = @(
+    'start-chaos',
+    'create-workspace',
+    'setup-scenario',
+    'run-scenario',
+    'chaos-impact',
+    'chaos-study',
+    'chaos-study-design',
+    'chaos-study-scope',
+    'chaos-study-run',
+    'chaos-study-report',
+    'chaos-study-history'
+)
+if ($chaosSkillFiles.Count -ne $expectedChaosSkills.Count -or
+    (Compare-Object ($expectedChaosSkills | Sort-Object) ($chaosSkillFiles.Directory.Name | Sort-Object))) {
     throw 'Chaos Studio plugin must contain all 11 upstream skills.'
 }
 $requiredChaosAssets = @(

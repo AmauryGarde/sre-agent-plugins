@@ -24,6 +24,16 @@ https://github.com/AmauryGarde/sre-agent-plugins
 3. Alternatively, choose **Install from URL** with the same base repository URL to import the root `sre-agent-plugins` bundle: all 26 skills and seven MCP server requirements.
 4. Configure the required MCP connectors separately in SRE Agent. Installation records the requirements; it does not authenticate or provision the connectors.
 
+To install **only Chaos Studio** without registering the catalog, use
+**Install from URL** with the base repository URL above and **Path in repo**
+set to `plugins/chaos-studio`. Verify its 11 skills in **Builder > Skill builder**.
+See the [Chaos Studio setup guide](plugins/chaos-studio/README.md) for the
+skill list, runtime prerequisites, safety gates, and update procedure.
+
+Installations are pinned to a git commit: publishing changes does not silently
+update existing agents. Check for updates explicitly in the portal and review
+the new version before importing it.
+
 Do not install the bundle and its individual plugins together unless you intentionally want duplicate skills.
 Do not use the demo repository or append `/tree/main`, a folder path, or a manifest filename to the repository field.
 Packaging is validated locally; installation in your SRE Agent instance still needs to be confirmed.
@@ -41,7 +51,7 @@ This copy supports both entry points:
 | `.github/plugin/marketplace.json` | Matching catalog at the original upstream location |
 | `plugin.json` | Standalone root bundle referencing all existing skill directories |
 | `.mcp.json` | Seven MCP server definitions needed by the standalone bundle |
-| `plugins/<name>/plugin.json` | Unchanged individual plugin manifests |
+| `plugins/<name>/plugin.json` | Individual SRE plugin manifests; Chaos Studio uses an adapted skills-only manifest |
 
 The root bundle references existing files rather than duplicating skill content.
 The marketplace is named `amaury-sre-agent-plugins` to distinguish it from the upstream catalog.
@@ -81,7 +91,7 @@ pwsh -NoProfile -File ./scripts/Test-PluginPackaging.ps1
 ```
 
 The check parses every JSON file, compares both marketplace catalogs, resolves every manifest path,
-checks all 26 skills are included exactly once, validates skill names and required
+checks all 26 skills are included exactly once, validates skill names, descriptions, and required
 Chaos Studio runtime assets, and compares the seven bundled MCP definitions
 against their individual plugin configurations.
 
